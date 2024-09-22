@@ -85,6 +85,19 @@ class BookRepository:
 
         return book
 
+    async def update_stock(
+        self, db_session: AsyncSession, book_id: int, quantity: int, operator: str = "+"
+    ):
+        if operator not in ["+", "-"]:
+            raise BadRequestException(error={"data": "عملگر آپدیت معتبر نیست"})
+
+        book = await self.get(db_session, book_id)
+        if operator == "+":
+            book.stock += quantity
+        else:
+            book.stock -= quantity
+        await db_session.commit()
+
     async def delete(self, db_session: AsyncSession, book_id: int):
         try:
             query = sa.delete(Book).where(Book.id == book_id)

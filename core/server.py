@@ -1,18 +1,17 @@
-from slowapi import Limiter
-from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
+import time
+from datetime import datetime
+from pathlib import Path
+import logging
+from logging.handlers import RotatingFileHandler
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.exceptions import RequestValidationError
 from fastapi import FastAPI, Request, applications
 from fastapi.openapi.docs import get_swagger_ui_html
 from app import api_router
 from settings import settings
 from core.exception import CustomException
-from core.helper.helper import recursive_errors_to_dict
-from core.translate.fa.validation import error_messages
 
 
 def init_listeners(app_: FastAPI) -> None:
@@ -116,8 +115,39 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
-limiter = Limiter(key_func=get_remote_address)
 
-app.state.limiter = limiter
+LOG_DIR = "logs"
+Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 
-app.add_middleware(SlowAPIMiddleware)
+today_date = datetime.now().strftime("%Y-%m-%d")
+log_file = f"{LOG_DIR}/{today_date}.log"
+
+file_handler = RotatingFileHandler(log_file, maxBytes=5 * 1024 * 1024, backupCount=5)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[file_handler],
+)
+
+logger = logging.getLogger("fastapi_app")
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    client_ip = request.client.host
+    requested_path = request.url.path
+    http_method = request.method
+
+    start_time = time.time()
+
+    response = await call_next(request)
+
+    duration = time.time() - start_time
+
+    logger.info(
+        f"IP: {client_ip}, Route: {http_method} {requested_path}, "
+        f"Status: {response.status_code}, Duration: {duration:.2f}s"
+    )
+
+    return response

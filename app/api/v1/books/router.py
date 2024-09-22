@@ -1,8 +1,9 @@
 from typing import Annotated
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
+
+from core.security import AuthenticationRequired
 
 from .controller import BookController
 from .schema.request import AddBookRequest, UpdateBookRequest
@@ -27,6 +28,9 @@ async def get_books(
     pub_year: int | None = None,
     skip: int = 0,
     limit: int = 10,
+    authorization=Security(
+        AuthenticationRequired.check_auth, scopes=["admin", "manager", "user"]
+    ),
 ):
     filters = clean_filters(
         search=search,
@@ -46,6 +50,9 @@ async def get_books(
 async def add_book(
     book: AddBookRequest,
     db_session: Annotated[AsyncSession, Depends(create_session)],
+    authorization=Security(
+        AuthenticationRequired.check_auth, scopes=["admin", "manager"]
+    ),
 ):
     return await book_controller.add(db_session, **book.model_dump(exclude_unset=True))
 
@@ -55,6 +62,9 @@ async def update_book(
     book_id: int,
     book: UpdateBookRequest,
     db_session: Annotated[AsyncSession, Depends(create_session)],
+    authorization=Security(
+        AuthenticationRequired.check_auth, scopes=["admin", "manager"]
+    ),
 ):
     return await book_controller.update(
         db_session, book_id, **book.model_dump(exclude_unset=True)
@@ -65,5 +75,8 @@ async def update_book(
 async def delete_book(
     book_id: int,
     db_session: Annotated[AsyncSession, Depends(create_session)],
+    authorization=Security(
+        AuthenticationRequired.check_auth, scopes=["admin", "manager"]
+    ),
 ):
     return await book_controller.delete(db_session, book_id)

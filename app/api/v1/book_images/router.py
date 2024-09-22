@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, UploadFile, Depends
+from fastapi import APIRouter, UploadFile, Depends, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.book_images.repository import ImageRepository
@@ -14,7 +14,9 @@ image_repository = ImageRepository()
 @image_router.post("/upload")
 async def upload_images(
     images: list[UploadFile],
-    user: Annotated[dict, Depends(AuthenticationRequired.check_auth)],
     db: Annotated[AsyncSession, Depends(create_session)],
+    authorization=Security(
+        AuthenticationRequired.check_auth, scopes=["admin", "manager"]
+    ),
 ):
     return await image_repository.bulk_create(db, images)

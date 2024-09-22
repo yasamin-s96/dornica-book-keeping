@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
@@ -49,7 +49,7 @@ class Role(Base):
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False)
-    slug: Mapped[RoleSlug] = mapped_column(sa.Enum(RoleSlug), nullable=False)
+    slug: Mapped[RoleSlug] = mapped_column(sa.String(20), nullable=False, unique=True)
 
     created_at: Mapped[datetime] = mapped_column(sa.TIMESTAMP, default=sa.func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -61,12 +61,25 @@ class Permission(Base):
     __tablename__ = "permissions"
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
-    role_id: Mapped[int] = mapped_column(
-        sa.ForeignKey("roles.id", onupdate="CASCADE", ondelete="RESTRICT")
-    )
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False)
-    slug: Mapped[str] = mapped_column(sa.Enum(PermissionSlug), nullable=False)
+    slug: Mapped[str] = mapped_column(sa.String(20), nullable=False, unique=True)
 
+    created_at: Mapped[datetime] = mapped_column(sa.TIMESTAMP, default=sa.func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        sa.TIMESTAMP, server_default=sa.func.now(), onupdate=sa.func.now()
+    )
+
+
+class RolePermission(Base):
+    __tablename__ = "role_permissions"
+    permission_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("permissions.id", onupdate="CASCADE", ondelete="RESTRICT"),
+        primary_key=True,
+    )
+    role_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("roles.id", onupdate="CASCADE", ondelete="RESTRICT"),
+        primary_key=True,
+    )
     created_at: Mapped[datetime] = mapped_column(sa.TIMESTAMP, default=sa.func.now())
     updated_at: Mapped[datetime] = mapped_column(
         sa.TIMESTAMP, server_default=sa.func.now(), onupdate=sa.func.now()
@@ -78,7 +91,9 @@ class Author(Base):
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False)
-    nationality: Mapped[str] = mapped_column(sa.String(100), nullable=True)
+    nationality: Mapped[str] = mapped_column(
+        sa.String(100), nullable=True, default=None
+    )
 
     created_at: Mapped[datetime] = mapped_column(sa.TIMESTAMP, default=sa.func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -153,9 +168,10 @@ class Loan(Base):
     user_id: Mapped[int] = mapped_column(
         sa.ForeignKey("users.id", onupdate="CASCADE", ondelete="RESTRICT")
     )
-    loan_date: Mapped[datetime] = mapped_column(sa.TIMESTAMP, nullable=False)
-    return_date: Mapped[datetime] = mapped_column(sa.TIMESTAMP, nullable=False)
+    loan_date: Mapped[date] = mapped_column(sa.TIMESTAMP, nullable=False)
+    return_date: Mapped[date] = mapped_column(sa.TIMESTAMP, nullable=False)
     extended: Mapped[bool] = mapped_column(sa.Boolean, default=False)
+    is_returned: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(sa.TIMESTAMP, default=sa.func.now())
     updated_at: Mapped[datetime] = mapped_column(
         sa.TIMESTAMP, server_default=sa.func.now(), onupdate=sa.func.now()
