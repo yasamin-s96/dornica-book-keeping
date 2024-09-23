@@ -9,8 +9,8 @@ if [ ! -d "$MARKER_DIR" ]; then
 fi
 
 if [ ! -f "$MARKER_FILE" ]; then
-    echo "First time start: waiting 60 seconds..."
-    sleep 60
+    echo "First time start: waiting 50 seconds..."
+    sleep 50
     touch "$MARKER_FILE"
     echo "Running Alembic migrations..."
     alembic upgrade head

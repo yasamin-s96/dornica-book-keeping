@@ -9,6 +9,8 @@ from core.enums import *
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
     email: Mapped[str] = mapped_column(sa.String(100), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(sa.String(255), nullable=False)
@@ -30,6 +32,8 @@ class User(Base):
 
 class AllowedIPs(Base):
     __tablename__ = "allowed_ips"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(
         sa.ForeignKey("users.id", onupdate="CASCADE", ondelete="RESTRICT")
@@ -46,6 +50,7 @@ class AllowedIPs(Base):
 
 class Role(Base):
     __tablename__ = "roles"
+    __table_args__ = {"mysql_engine": "InnoDB"}
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False)
@@ -59,6 +64,7 @@ class Role(Base):
 
 class Permission(Base):
     __tablename__ = "permissions"
+    __table_args__ = {"mysql_engine": "InnoDB"}
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False)
@@ -72,6 +78,8 @@ class Permission(Base):
 
 class RolePermission(Base):
     __tablename__ = "role_permissions"
+    __table_args__ = {"mysql_engine": "InnoDB"}
+
     permission_id: Mapped[int] = mapped_column(
         sa.ForeignKey("permissions.id", onupdate="CASCADE", ondelete="RESTRICT"),
         primary_key=True,
@@ -88,6 +96,7 @@ class RolePermission(Base):
 
 class Author(Base):
     __tablename__ = "authors"
+    __table_args__ = {"mysql_engine": "InnoDB"}
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False)
@@ -103,6 +112,7 @@ class Author(Base):
 
 class Book(Base):
     __tablename__ = "books"
+    __table_args__ = {"mysql_engine": "InnoDB"}
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(sa.String(255), nullable=False)
@@ -123,6 +133,7 @@ class Book(Base):
 
 class Image(Base):
     __tablename__ = "images"
+    __table_args__ = {"mysql_engine": "InnoDB"}
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
     book_id: Mapped[int] = mapped_column(
@@ -144,9 +155,10 @@ class Image(Base):
 
 class Category(Base):
     __tablename__ = "categories"
+    __table_args__ = {"mysql_engine": "InnoDB"}
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(sa.String(255), nullable=False)
+    title: Mapped[str] = mapped_column(sa.String(255), nullable=False, unique=True)
     parent_id: Mapped[int] = mapped_column(
         sa.ForeignKey("categories.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
@@ -160,6 +172,7 @@ class Category(Base):
 
 class Loan(Base):
     __tablename__ = "loans"
+    __table_args__ = {"mysql_engine": "InnoDB"}
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
     book_id: Mapped[int] = mapped_column(
@@ -180,6 +193,7 @@ class Loan(Base):
 
 class LoginHistory(Base):
     __tablename__ = "login_history"
+    __table_args__ = {"mysql_engine": "InnoDB"}
 
     id: Mapped[int] = mapped_column(sa.BIGINT, primary_key=True, autoincrement=True)
 
