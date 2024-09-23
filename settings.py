@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=".env.example",
         extra="ignore",
         env_file_encoding="utf-8",
     )

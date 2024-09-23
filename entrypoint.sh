@@ -9,11 +9,12 @@ if [ ! -d "$MARKER_DIR" ]; then
 fi
 
 if [ ! -f "$MARKER_FILE" ]; then
-    echo "First time start: waiting 50 seconds..."
-    sleep 50
+    echo "First time start: waiting 70 seconds..."
+    sleep 70
     touch "$MARKER_FILE"
     echo "Running Alembic migrations..."
     alembic upgrade head
+    python seed_roles.py
 
 else
     echo "Already started before, no delay."
