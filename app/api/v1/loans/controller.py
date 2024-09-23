@@ -50,3 +50,10 @@ class LoanController:
         self, db_session: AsyncSession, loan_id: int, new_due_date: datetime.date
     ):
         return await self.main_repo.extend(db_session, loan_id, new_due_date)
+
+    async def get_loans_report(
+        self, db_session: AsyncSession, skip: int, limit: int, **filters
+    ):
+        return await self.main_repo.get_loans_report(
+            db_session, skip=skip, limit=limit, **filters
+        )

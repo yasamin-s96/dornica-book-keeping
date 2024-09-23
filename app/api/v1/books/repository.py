@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from settings import settings
 from .schema.response import BookResponse
-from core.models import Book, Author, Category, Image
+from core.models import Book, Author, Category, Image, Loan
 from core.exception import NotFoundException, BadRequestException
-from .utilities import construct_filters_list
+from .utilities import construct_book_filters_list
 
 
 class BookRepository:
@@ -39,7 +39,7 @@ class BookRepository:
         )
 
         if filters:
-            flist = construct_filters_list(**filters)
+            flist = construct_book_filters_list(**filters)
             query = query.where(sa.and_(*flist))
 
         query = query.offset(skip).limit(limit)
@@ -111,3 +111,75 @@ class BookRepository:
             raise NotFoundException(error={"data": "کتاب یافت نشد"})
         await db_session.commit()
         return {"message": "کتاب با موفقیت حذف شد"}
+
+    async def book_inventory_report(
+        self, db_session: AsyncSession, filter_by_category: str = None
+    ):
+        loan_subquery = (
+            sa.select(Loan.book_id, sa.func.count().label("borrowed_count"))
+            .where(Loan.is_returned == False)
+            .group_by(Loan.book_id)
+            .subquery()
+        )
+
+        if filter_by_category:
+            query = (
+                sa.select(
+                    Category.id,
+                    Category.title,
+                    sa.func.sum(Book.stock).label("available"),
+                    sa.func.sum(
+                        sa.func.coalesce(loan_subquery.c.borrowed_count, 0)
+                    ).label("borrowed"),
+                )
+                .select_from(Category)
+                .outerjoin(Book, Book.category_id == Category.id)
+                .outerjoin(loan_subquery, Book.id == loan_subquery.c.book_id)
+                .filter(Category.title == filter_by_category)
+                .group_by(Category.id, Category.title)
+            )
+
+            result = (await db_session.execute(query)).fetchall()
+            report = [
+                {
+                    "id": row.id,
+                    "category": row.title,
+                    "available": row.available,
+                    "borrowed": row.borrowed,
+                }
+                for row in result
+            ]
+            return report
+
+        else:
+            query = (
+                sa.select(
+                    Book.id,
+                    Book.title,
+                    Author.name.label("author"),
+                    Category.title.label("category"),
+                    Book.stock.label("available"),
+                    sa.func.coalesce(loan_subquery.c.borrowed_count, 0).label(
+                        "borrowed"
+                    ),
+                )
+                .select_from(Book)
+                .join(Author, Book.author_id == Author.id)
+                .join(Category, Book.category_id == Category.id)
+                .outerjoin(loan_subquery, Book.id == loan_subquery.c.book_id)
+            )
+
+            result = (await db_session.execute(query)).fetchall()
+            report = [
+                {
+                    "id": row.id,
+                    "title": row.title,
+                    "author": row.author,
+                    "category": row.category,
+                    "available": row.available,
+                    "borrowed": row.borrowed,
+                }
+                for row in result
+            ]
+
+            return report

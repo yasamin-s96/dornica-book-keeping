@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
 
-from app.api.v1.authentication.schema.request import AllowedIP
+from app.api.v1.allowed_ips.schema.request import AllowedIP
 from core.models import AllowedIPs
 from core.exception.base import (
     NotFoundException,
@@ -22,7 +22,7 @@ class IPRepository:
 
     async def get_allowed_ips(self, db_session: AsyncSession, user_id: int):
         allowed_ips = list(
-            (await db_session.execute(sa.select(AllowedIP).filter_by(user_id=user_id)))
+            (await db_session.execute(sa.select(AllowedIPs).filter_by(user_id=user_id)))
             .scalars()
             .all()
         )

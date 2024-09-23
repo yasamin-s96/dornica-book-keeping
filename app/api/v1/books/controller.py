@@ -82,3 +82,8 @@ class BookController:
 
     async def delete(self, db_session: AsyncSession, book_id: int):
         return await self.main_repo.delete(db_session, book_id)
+
+    async def book_inventory_report(
+        self, db_session: AsyncSession, category_filter: str = None
+    ):
+        return await self.main_repo.book_inventory_report(db_session, category_filter)

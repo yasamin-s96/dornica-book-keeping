@@ -25,9 +25,7 @@ async def get_role_permissions(
     return await role_permission_controller.get_role_permissions(db_session)
 
 
-@role_permission_router.post(
-    "/", response_model=RolePermissionResponse, status_code=status.HTTP_201_CREATED
-)
+@role_permission_router.post("/", status_code=status.HTTP_201_CREATED)
 async def add_permission(
     role_permission: RolePermissionRequest,
     db_session: Annotated[AsyncSession, Depends(create_session)],
@@ -38,13 +36,15 @@ async def add_permission(
     )
 
 
-@role_permission_router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+@role_permission_router.delete(
+    "/{role_slug}/{permission_slug}", status_code=status.HTTP_204_NO_CONTENT
+)
 async def delete_permission(
-    role: str,
-    permission: str,
+    role_slug: str,
+    permission_slug: str,
     db_session: Annotated[AsyncSession, Depends(create_session)],
     authorization=Security(AuthenticationRequired.check_auth, scopes=["admin"]),
 ):
     return await role_permission_controller.delete_role_permission(
-        db_session, role, permission
+        db_session, role_slug, permission_slug
     )

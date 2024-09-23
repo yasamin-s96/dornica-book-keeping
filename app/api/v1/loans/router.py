@@ -57,3 +57,31 @@ async def return_book(
     ),
 ):
     return await loan_controller.return_book(db_session, loan_id)
+
+
+@loan_router.get("/report")
+async def get_loan_report(
+    db_session: Annotated[AsyncSession, Depends(create_session)],
+    user_email: str | None = None,
+    category: str = None,
+    loan_date_from: str | None = None,
+    loan_date_to: str | None = None,
+    return_date_from: str | None = None,
+    return_date_to: str | None = None,
+    skip: int = 0,
+    limit: int = 10,
+    authorization=Security(
+        AuthenticationRequired.check_auth, scopes=["admin", "manager"]
+    ),
+):
+    filters = {
+        "user": user_email,
+        "category": category,
+        "loan_date_from": loan_date_from,
+        "loan_date_to": loan_date_to,
+        "return_date_from": return_date_from,
+        "return_date_to": return_date_to,
+    }
+    return await loan_controller.get_loans_report(
+        db_session, skip=skip, limit=limit, **filters
+    )

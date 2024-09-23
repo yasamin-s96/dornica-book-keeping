@@ -27,6 +27,7 @@ auth = AuthController()
 @auth_router.post("/register", status_code=status.HTTP_201_CREATED)
 @rate_limit(max_calls=5, time_frame=60)
 async def register(
+    request: Request,
     credentials: RegistrationCredentials,
     db_session: Annotated[AsyncSession, Depends(create_session)],
     background_tasks: BackgroundTasks,
@@ -39,6 +40,7 @@ async def register(
 @auth_router.post("/login")
 @rate_limit(max_calls=5, time_frame=60)
 async def login(
+    request: Request,
     credentials: LoginCredentials,
     db_session: Annotated[AsyncSession, Depends(create_session)],
 ):
@@ -48,6 +50,7 @@ async def login(
 @auth_router.put("/logout")
 @rate_limit(max_calls=5, time_frame=60)
 async def logout(
+    request: Request,
     db_session: Annotated[AsyncSession, Depends(create_session)],
     token: Annotated[
         HTTPAuthorizationCredentials, Depends(HTTPBearer(auto_error=False))
@@ -62,7 +65,9 @@ async def logout(
 @auth_router.get("/verify-email")
 @rate_limit(max_calls=5, time_frame=60)
 async def verify_email(
-    token: str, db_session: Annotated[AsyncSession, Depends(create_session)]
+    request: Request,
+    token: str,
+    db_session: Annotated[AsyncSession, Depends(create_session)],
 ):
     return await auth.verify_email(db_session, token)
 
@@ -82,6 +87,7 @@ async def two_factor_auth(
 @auth_router.post("/forgot-password", status_code=status.HTTP_200_OK)
 @rate_limit(max_calls=5, time_frame=60)
 async def request_reset_password_link(
+    request: Request,
     email: EmailRequest,
     db_session: Annotated[AsyncSession, Depends(create_session)],
     background_tasks: BackgroundTasks,
@@ -92,7 +98,9 @@ async def request_reset_password_link(
 @auth_router.get("/verify-reset-link")
 @rate_limit(max_calls=5, time_frame=60)
 async def verify_reset_token(
-    token: str, db_session: Annotated[AsyncSession, Depends(create_session)]
+    request: Request,
+    token: str,
+    db_session: Annotated[AsyncSession, Depends(create_session)],
 ):
     await auth.verify_reset_password_token(db_session, token)
 
@@ -100,6 +108,7 @@ async def verify_reset_token(
 @auth_router.put("/reset-password", status_code=status.HTTP_200_OK)
 @rate_limit(max_calls=5, time_frame=60)
 async def reset_password(
+    request: Request,
     token: str,
     new_password: PasswordRequest,
     db_session: Annotated[AsyncSession, Depends(create_session)],

@@ -22,6 +22,21 @@ class UserRepository:
 
         return new_user.email
 
+    async def admin_create(self, db_session: AsyncSession, **data):
+        hashed_password = hash(data.get("password"))
+
+        new_user = User(
+            email=data.get("email"),
+            role_id=data.get("role_id"),
+            password=hashed_password,
+            phone_number=data.get("phone_number"),
+        )
+        db_session.add(new_user)
+        await db_session.commit()
+        await db_session.refresh(new_user)
+
+        return new_user
+
     async def email_exists(self, db_session: AsyncSession, email: str) -> bool:
         query = sa.select(sa.exists().where(User.email == email))
         result = bool((await db_session.execute(query)).scalars().one())

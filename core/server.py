@@ -130,7 +130,7 @@ logging.basicConfig(
     handlers=[file_handler],
 )
 
-logger = logging.getLogger("fastapi_app")
+logger = logging.getLogger("app")
 
 
 @app.middleware("http")

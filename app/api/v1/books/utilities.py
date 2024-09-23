@@ -1,4 +1,3 @@
-import sqlalchemy as sa
 from core.models import Author, Book, Category, Image
 
 
@@ -6,7 +5,7 @@ def clean_filters(**filters):
     return {k: v for k, v in filters.items() if v is not None and v != ""}
 
 
-def construct_filters_list(**filters) -> list:
+def construct_book_filters_list(**filters) -> list:
     filter_list = []
     for key, value in filters.items():
         if key == "search":

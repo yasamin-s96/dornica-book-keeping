@@ -80,3 +80,16 @@ async def delete_book(
     ),
 ):
     return await book_controller.delete(db_session, book_id)
+
+
+@book_router.get("/inventory")
+async def get_inventory(
+    db_session: Annotated[AsyncSession, Depends(create_session)],
+    category: str | None = None,
+    # authorization=Security(
+    #     AuthenticationRequired.check_auth, scopes=["admin", "manager"]
+    # ),
+):
+    return await book_controller.book_inventory_report(
+        db_session, category_filter=category
+    )
